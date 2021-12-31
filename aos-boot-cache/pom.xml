@@ -8,7 +8,7 @@
     <parent>
         <artifactId>aos-boot</artifactId>
         <groupId>ink.aos.boot</groupId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>5.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>aos-boot-cache</artifactId>

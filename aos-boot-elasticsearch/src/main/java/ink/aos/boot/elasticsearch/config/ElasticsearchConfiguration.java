@@ -26,17 +26,17 @@ public class ElasticsearchConfiguration {
 //        return new CustomEntityMapper(mapper);
 //    }
 
-    @Bean
-    SimpleElasticsearchMappingContext mappingContext() {
-        return new CustomElasticsearchMappingContext();
-    }
-
-    @Bean
-    @Primary
-    public ElasticsearchOperations elasticsearchTemplate(final RestHighLevelClient restClient,
-                                                         final SimpleElasticsearchMappingContext mappingContext) {
-        return new ElasticsearchRestTemplate(restClient, new MappingElasticsearchConverter(new CustomElasticsearchMappingContext()));
-    }
+//    @Bean
+//    SimpleElasticsearchMappingContext mappingContext() {
+//        return new CustomElasticsearchMappingContext();
+//    }
+//
+//    @Bean
+//    @Primary
+//    public ElasticsearchOperations elasticsearchTemplate(final RestHighLevelClient restClient,
+//                                                         final SimpleElasticsearchMappingContext mappingContext) {
+//        return new ElasticsearchRestTemplate(restClient, new MappingElasticsearchConverter(new CustomElasticsearchMappingContext()));
+//    }
 
 //    @Bean
 //    @Primary
@@ -95,30 +95,30 @@ public class ElasticsearchConfiguration {
 //    }
 }
 
-/**
- * Custom mapping context in order to use the same entities for both MongoDB and Elasticsearch datasources
- */
-class CustomElasticsearchMappingContext extends SimpleElasticsearchMappingContext {
-
-    @Override
-    protected ElasticsearchPersistentProperty createPersistentProperty(
-            Property property,
-            SimpleElasticsearchPersistentEntity owner,
-            SimpleTypeHolder simpleTypeHolder
-    ) {
-        return new CustomElasticsearchPersistentProperty(property, owner, simpleTypeHolder);
-    }
-}
-
-class CustomElasticsearchPersistentProperty extends SimpleElasticsearchPersistentProperty {
-
-    @SuppressWarnings({"unchecked"})
-    public CustomElasticsearchPersistentProperty(Property property, PersistentEntity owner, SimpleTypeHolder simpleTypeHolder) {
-        super(property, owner, simpleTypeHolder);
-    }
-
-    @Override
-    public boolean isAssociation() {
-        return false;
-    }
-}
+///**
+// * Custom mapping context in order to use the same entities for both MongoDB and Elasticsearch datasources
+// */
+//class CustomElasticsearchMappingContext extends SimpleElasticsearchMappingContext {
+//
+//    @Override
+//    protected ElasticsearchPersistentProperty createPersistentProperty(
+//            Property property,
+//            SimpleElasticsearchPersistentEntity owner,
+//            SimpleTypeHolder simpleTypeHolder
+//    ) {
+//        return new CustomElasticsearchPersistentProperty(property, owner, simpleTypeHolder);
+//    }
+//}
+//
+//class CustomElasticsearchPersistentProperty extends SimpleElasticsearchPersistentProperty {
+//
+//    @SuppressWarnings({"unchecked"})
+//    public CustomElasticsearchPersistentProperty(Property property, PersistentEntity owner, SimpleTypeHolder simpleTypeHolder) {
+//        super(property, owner, simpleTypeHolder);
+//    }
+//
+//    @Override
+//    public boolean isAssociation() {
+//        return false;
+//    }
+//}

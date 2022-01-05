@@ -22,7 +22,7 @@ import static springfox.documentation.builders.PathSelectors.regex;
  * @date: 12/23/20
  * @Copyright: 2019 www.aos.ink All rights reserved.
  */
-public class AosSwaggerCustomizer implements SwaggerCustomizer, Ordered {
+public class AosSwaggerCustomizer implements SpringfoxCustomizer, Ordered {
 
     /**
      * The default order for the customizer.

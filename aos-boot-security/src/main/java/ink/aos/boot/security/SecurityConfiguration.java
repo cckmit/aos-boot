@@ -6,6 +6,7 @@ import ink.aos.boot.security.authentication.UserAuthenticationProvider;
 import ink.aos.boot.security.config.SecurityAuthorizedUrlProperties;
 import ink.aos.boot.security.filter.RedisBasicAuthenticationFilter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,20 +35,22 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final SecurityAuthorizedUrlProperties securityAuthorizedUrlProperties;
 
-    private final DiySecurityConfig diySecurityConfig;
+    @Autowired(required = false)
+    private DiySecurityConfig diySecurityConfig;
 
     public SecurityConfiguration(SecurityProblemSupport problemSupport,
-                                 SecurityAuthorizedUrlProperties securityAuthorizedUrlProperties,
-                                 DiySecurityConfig diySecurityConfig) {
+                                 SecurityAuthorizedUrlProperties securityAuthorizedUrlProperties) {
         this.problemSupport = problemSupport;
         this.securityAuthorizedUrlProperties = securityAuthorizedUrlProperties;
-        this.diySecurityConfig = diySecurityConfig.setSecurityConfiguration(this);
         log.debug("SecurityConfiguration ------------");
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        diySecurityConfig.configure(auth);
+        if (diySecurityConfig != null) {
+            diySecurityConfig.setSecurityConfiguration(this);
+            diySecurityConfig.configure(auth);
+        }
         auth.authenticationProvider(userAuthenticationProvider());
     }
 
@@ -69,7 +72,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         ;
 
         authorizedUrl(http.authorizeRequests());
-        diySecurityConfig.configure(http);
+        if (diySecurityConfig != null) {
+            diySecurityConfig.setSecurityConfiguration(this);
+            diySecurityConfig.configure(http);
+        }
     }
 
     private void authorizedUrl(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) {

@@ -3,15 +3,11 @@ package ink.aos.boot.web.swagger;
 import springfox.documentation.spring.web.plugins.Docket;
 
 /**
- * All rights Reserved, Designed By aos.ink
- *
- * @version V1.0
- * @author: lichaohn@163.com
- * @date: 12/23/20
- * @Copyright: 2019 www.aos.ink All rights reserved.
+ * Callback interface that can be implemented by beans wishing to further customize the
+ * {@link springfox.documentation.spring.web.plugins.Docket} in Springfox.
  */
 @FunctionalInterface
-public interface SwaggerCustomizer {
+public interface SpringfoxCustomizer {
 
     /**
      * Customize the Springfox Docket.
@@ -20,4 +16,3 @@ public interface SwaggerCustomizer {
      */
     void customize(Docket docket);
 }
-

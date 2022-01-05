@@ -1,16 +1,25 @@
 package ink.aos.boot.security;
 
+import ink.aos.boot.security.authentication.RedisBearerAuthenticationConverter;
+import ink.aos.boot.security.authentication.RedisUserAuthenticationTokenStore;
+import ink.aos.boot.security.authentication.UserAuthenticationProvider;
 import ink.aos.boot.security.config.SecurityAuthorizedUrlProperties;
+import ink.aos.boot.security.filter.RedisBasicAuthenticationFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
 @Slf4j
@@ -18,7 +27,6 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @Import(SecurityProblemSupport.class)
-//@ConditionalOnMissingBean(UaaServicePoint.class)
 @EnableConfigurationProperties(SecurityAuthorizedUrlProperties.class)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
@@ -33,8 +41,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                                  DiySecurityConfig diySecurityConfig) {
         this.problemSupport = problemSupport;
         this.securityAuthorizedUrlProperties = securityAuthorizedUrlProperties;
-        this.diySecurityConfig = diySecurityConfig;
+        this.diySecurityConfig = diySecurityConfig.setSecurityConfiguration(this);
         log.debug("SecurityConfiguration ------------");
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        diySecurityConfig.configure(auth);
+        auth.authenticationProvider(userAuthenticationProvider());
     }
 
     @Override
@@ -49,6 +63,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .frameOptions()
                 .disable()
                 .and()
+                .addFilterBefore(basicAuthenticationFilter(), BasicAuthenticationFilter.class)
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         ;
@@ -76,4 +91,27 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN);
     }
 
+    public AuthenticationManager authenticationManager() throws Exception {
+        return super.authenticationManager();
+    }
+
+    @Bean
+    public RedisBasicAuthenticationFilter basicAuthenticationFilter() throws Exception {
+        return new RedisBasicAuthenticationFilter(authenticationManager());
+    }
+
+    @Bean
+    public RedisUserAuthenticationTokenStore userAuthenticationTokenStore() {
+        return new RedisUserAuthenticationTokenStore();
+    }
+
+    @Bean
+    public RedisBearerAuthenticationConverter bearerAuthenticationConverter() {
+        return new RedisBearerAuthenticationConverter();
+    }
+
+    @Bean
+    public UserAuthenticationProvider userAuthenticationProvider() {
+        return new UserAuthenticationProvider();
+    }
 }

@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(value = "ink.aos",
         includeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, value = Repository.class)}
 )
-@EnableJpaAuditing(auditorAwareRef = "springSecurityAuditorAware")
 @EnableTransactionManagement
 public class DatabaseConfiguration {
 

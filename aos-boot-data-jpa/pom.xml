@@ -14,10 +14,6 @@
     <artifactId>aos-boot-data-jpa</artifactId>
 
     <dependencies>
-        <!--        <dependency>-->
-        <!--            <groupId>org.springframework.boot</groupId>-->
-        <!--            <artifactId>spring-boot</artifactId>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>ink.aos.boot</groupId>
             <artifactId>aos-boot-core</artifactId>

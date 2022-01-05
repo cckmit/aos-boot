@@ -1,10 +1,7 @@
 package ink.aos.boot.security;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 
 import java.util.Optional;
 
@@ -74,13 +71,13 @@ public final class SecurityUtils {
                 .orElse(false);
     }
 
-    public static String getToken() {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
-        if (authentication != null && authentication.getDetails() instanceof OAuth2AuthenticationDetails) {
-            OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) authentication.getDetails();
-            return details.getTokenValue();
-        }
-        return null;
-    }
+//    public static String getToken() {
+//        SecurityContext securityContext = SecurityContextHolder.getContext();
+//        Authentication authentication = securityContext.getAuthentication();
+//        if (authentication != null && authentication.getDetails() instanceof OAuth2AuthenticationDetails) {
+//            OAuth2AuthenticationDetails details = (OAuth2AuthenticationDetails) authentication.getDetails();
+//            return details.getTokenValue();
+//        }
+//        return null;
+//    }
 }

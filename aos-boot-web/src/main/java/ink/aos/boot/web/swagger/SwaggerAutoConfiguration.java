@@ -13,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.DispatcherServlet;
 import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration;
 import springfox.documentation.schema.AlternateTypeRule;
 import springfox.documentation.service.ApiInfo;
@@ -33,7 +32,6 @@ import static springfox.documentation.builders.PathSelectors.regex;
         ApiInfo.class,
         BeanValidatorPluginsConfiguration.class,
         Servlet.class,
-        DispatcherServlet.class,
         Docket.class
 })
 @Profile("swagger")

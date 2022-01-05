@@ -1,32 +1,32 @@
 package ink.aos.boot.security;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.*;
 import org.springframework.security.core.CredentialsContainer;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
+import java.util.List;
 
 @Builder
-@Slf4j
 @Getter
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User implements UserDetails, CredentialsContainer {
 
-    private final String username;
+    private String username;
     private String password;
-    private final String tenantId;
-    private final Collection<? extends GrantedAuthority> authorities;
+    private String tenantId;
+
+    private List<UserGrantedAuthority> authorities;
+
     private final boolean accountNonExpired = true;
     private final boolean accountNonLocked = true;
     private final boolean credentialsNonExpired = true;
     private final boolean enabled = true;
 
-    private final String id;
-    private final String name;
-    private final String email;
-    private final String mobile;
+    private String id;
+    private String name;
+    private String email;
+    private String mobile;
 
     @Override
     public void eraseCredentials() {

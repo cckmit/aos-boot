@@ -18,7 +18,6 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
         this.user = user;
         this.accessToken = accessToken;
         this.expiresIn = expiresIn;
-        super.setDetails(user);
     }
 
     @Override
@@ -28,12 +27,7 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return ((User) getDetails()).getId();
-    }
-
-    @Override
-    public Object getDetails() {
-        return super.getDetails();
+        return user;
     }
 
 }

@@ -21,4 +21,5 @@ public class UserAuthenticationProvider implements AuthenticationProvider {
     public boolean supports(Class<?> aClass) {
         return UserAuthenticationToken.class.isAssignableFrom(aClass);
     }
+    
 }

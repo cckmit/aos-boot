@@ -38,7 +38,7 @@ public class RedisBasicAuthenticationFilter extends BasicAuthenticationFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            logger.warn(e.getMessage(), e);
+            logger.warn(e.getClass().getName() + ":" + e.getMessage());
         }
         chain.doFilter(request, response);
     }

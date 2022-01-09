@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -21,7 +20,6 @@ import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration
 import springfox.documentation.oas.configuration.OpenApiDocumentationConfiguration;
 import springfox.documentation.schema.AlternateTypeRule;
 import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Server;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.configuration.Swagger2DocumentationConfiguration;
@@ -53,8 +51,6 @@ import static springfox.documentation.builders.PathSelectors.regex;
 })
 public class SpringfoxAutoConfiguration {
 
-    static final String STARTING_MESSAGE = "Starting OpenAPI docs";
-    static final String STARTED_MESSAGE = "Started OpenAPI docs in {} ms";
     static final String MANAGEMENT_TITLE_SUFFIX = "Management API";
     static final String MANAGEMENT_GROUP_NAME = "management";
     static final String MANAGEMENT_DESCRIPTION = "Management endpoints documentation";
@@ -78,7 +74,6 @@ public class SpringfoxAutoConfiguration {
     @ConditionalOnMissingBean(name = "openAPISpringfoxApiDocket")
     public Docket openAPISpringfoxApiDocket(List<SpringfoxCustomizer> springfoxCustomizers,
                                             ObjectProvider<AlternateTypeRule[]> alternateTypeRules) {
-        log.debug(STARTING_MESSAGE);
         StopWatch watch = new StopWatch();
         watch.start();
 
@@ -92,7 +87,6 @@ public class SpringfoxAutoConfiguration {
         Optional.ofNullable(alternateTypeRules.getIfAvailable()).ifPresent(docket::alternateTypeRules);
 
         watch.stop();
-        log.debug(STARTED_MESSAGE, watch.getTotalTimeMillis());
         return docket;
     }
 
@@ -102,8 +96,8 @@ public class SpringfoxAutoConfiguration {
      * @return the Sringfox Customizer of JHipster
      */
     @Bean
-    public AosSwaggerCustomizer jHipsterSpringfoxCustomizer() {
-        return new AosSwaggerCustomizer(properties);
+    public AosSpringfoxCustomizer aosSpringfoxCustomizer() {
+        return new AosSpringfoxCustomizer(properties);
     }
 
     /**
@@ -151,7 +145,7 @@ public class SpringfoxAutoConfiguration {
 
         return docket
                 .select()
-//                .paths(regex(properties.getManagementIncludePattern()))
+                .paths(regex("/management/.*"))
                 .build();
     }
 

@@ -10,16 +10,16 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.concurrent.TimeUnit;
 
-public class RedisUserAuthenticationTokenStore implements UserAuthenticationTokenStore {
+public class RedisUserRememberMeTokenStore implements UserRememberMeTokenStore {
 
-    private final String REDIS_KEY_PRE = "aos_auth:user_auth:";
+    private final String REDIS_KEY_PRE = "aos_auth:user_remember_me:";
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public UserAuthenticationToken findByAccessToken(String token) {
-        UserAuthenticationTokenBean bean = (UserAuthenticationTokenBean) redisTemplate.boundValueOps(key(token)).get();
+    public UserRememberMeToken findByAccessToken(String token) {
+        RedisUserRememberMeTokenStore.UserRememberMeTokenBean bean = (RedisUserRememberMeTokenStore.UserRememberMeTokenBean) redisTemplate.boundValueOps(key(token)).get();
         if (bean != null) {
             return bean.to();
         }
@@ -27,14 +27,14 @@ public class RedisUserAuthenticationTokenStore implements UserAuthenticationToke
     }
 
     @Override
-    public void save(UserAuthenticationToken token) {
+    public void save(UserRememberMeToken token) {
         String accessToken = token.getAccessToken();
         String key = key(accessToken);
-        redisTemplate.boundValueOps(key).set(UserAuthenticationTokenBean.create(token), token.getExpiresIn(), TimeUnit.SECONDS);
+        redisTemplate.boundValueOps(key).set(RedisUserRememberMeTokenStore.UserRememberMeTokenBean.create(token), token.getExpiresIn(), TimeUnit.SECONDS);
     }
 
     @Override
-    public void delay(UserAuthenticationToken token) {
+    public void delay(UserRememberMeToken token) {
         String accessToken = token.getAccessToken();
         String key = key(accessToken);
         redisTemplate.boundValueOps(key).expire(token.getExpiresIn(), TimeUnit.SECONDS);
@@ -52,22 +52,23 @@ public class RedisUserAuthenticationTokenStore implements UserAuthenticationToke
     @Builder
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @AllArgsConstructor(access = AccessLevel.PROTECTED)
-    private static class UserAuthenticationTokenBean {
+    private static class UserRememberMeTokenBean {
 
         private User user;
         private String accessToken;
         private long expiresIn;
 
-        private static UserAuthenticationTokenBean create(UserAuthenticationToken authenticationToken) {
-            return UserAuthenticationTokenBean.builder()
+
+        private static RedisUserRememberMeTokenStore.UserRememberMeTokenBean create(UserRememberMeToken authenticationToken) {
+            return RedisUserRememberMeTokenStore.UserRememberMeTokenBean.builder()
                     .user(authenticationToken.getUser())
                     .expiresIn(authenticationToken.getExpiresIn())
                     .accessToken(authenticationToken.getAccessToken())
                     .build();
         }
 
-        private UserAuthenticationToken to() {
-            return new UserAuthenticationToken(user, accessToken, expiresIn);
+        private UserRememberMeToken to() {
+            return new UserRememberMeToken(user, accessToken, expiresIn);
         }
 
     }

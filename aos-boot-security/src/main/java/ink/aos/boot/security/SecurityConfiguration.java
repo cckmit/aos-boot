@@ -1,19 +1,16 @@
 package ink.aos.boot.security;
 
-import ink.aos.boot.security.authentication.RedisBearerAuthenticationConverter;
-import ink.aos.boot.security.authentication.RedisUserAuthenticationTokenStore;
-import ink.aos.boot.security.authentication.UserAuthenticationProvider;
+import ink.aos.boot.security.authentication.*;
 import ink.aos.boot.security.config.SecurityAuthorizedUrlProperties;
+import ink.aos.boot.security.config.SecurityUserAuthProperties;
 import ink.aos.boot.security.filter.RedisBasicAuthenticationFilter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,15 +25,18 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @Import(SecurityProblemSupport.class)
-@EnableConfigurationProperties(SecurityAuthorizedUrlProperties.class)
+@EnableConfigurationProperties({SecurityAuthorizedUrlProperties.class, SecurityUserAuthProperties.class})
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final SecurityProblemSupport problemSupport;
 
     private final SecurityAuthorizedUrlProperties securityAuthorizedUrlProperties;
 
-    @Autowired(required = false)
     private DiySecurityConfig diySecurityConfig;
+
+    public void setDiySecurityConfig(DiySecurityConfig diySecurityConfig) {
+        this.diySecurityConfig = diySecurityConfig;
+    }
 
     public SecurityConfiguration(SecurityProblemSupport problemSupport,
                                  SecurityAuthorizedUrlProperties securityAuthorizedUrlProperties) {
@@ -48,7 +48,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         if (diySecurityConfig != null) {
-            diySecurityConfig.setSecurityConfiguration(this);
             diySecurityConfig.configure(auth);
         }
         auth.authenticationProvider(userAuthenticationProvider());
@@ -66,6 +65,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .frameOptions()
                 .disable()
                 .and()
+                .rememberMe().rememberMeServices(userRememberMeServices()).authenticationSuccessHandler(userAuthenticationSuccessHandler())
+                .and()
                 .addFilterBefore(basicAuthenticationFilter(), BasicAuthenticationFilter.class)
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -73,7 +74,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         authorizedUrl(http.authorizeRequests());
         if (diySecurityConfig != null) {
-            diySecurityConfig.setSecurityConfiguration(this);
             diySecurityConfig.configure(http);
         }
     }
@@ -94,6 +94,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/swagger-resources").authenticated()
                 .antMatchers("/swagger-resources/**").authenticated()
                 .antMatchers("/v2/api-docs").authenticated()
+                .antMatchers("/v3/api-docs").authenticated()
                 .antMatchers("/management/**").hasAuthority(AuthoritiesConstants.ADMIN);
     }
 
@@ -119,5 +120,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public UserAuthenticationProvider userAuthenticationProvider() {
         return new UserAuthenticationProvider();
+    }
+
+    @Bean
+    public UserRememberMeServices userRememberMeServices() {
+        return new UserRememberMeServices();
+    }
+
+    @Bean
+    public RedisUserRememberMeTokenStore redisUserRememberMeTokenStore() {
+        return new RedisUserRememberMeTokenStore();
+    }
+
+    @Bean
+    public UserAuthenticationSuccessHandler userAuthenticationSuccessHandler() {
+        return new UserAuthenticationSuccessHandler();
     }
 }

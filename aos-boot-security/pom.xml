@@ -63,6 +63,11 @@
             <artifactId>undertow-servlet</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>ink.aos.module</groupId>
+            <artifactId>aos-module-captcha</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
 </project>

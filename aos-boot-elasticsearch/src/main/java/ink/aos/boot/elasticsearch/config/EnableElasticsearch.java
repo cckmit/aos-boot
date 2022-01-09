@@ -1,7 +1,6 @@
 package ink.aos.boot.elasticsearch.config;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
 
@@ -16,9 +15,9 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-@Import({
-        ElasticsearchConfiguration.class,
-})
+//@Import({
+//        ElasticsearchConfiguration.class,
+//})
 @Configuration
 public @interface EnableElasticsearch {
 }

@@ -21,7 +21,7 @@ public class UserAuthenticationFilter extends AbstractAuthenticationProcessingFi
             "POST");
 
     @Autowired
-    private UserAuthenticationSuccessHandler successHandler;
+    private UserAuthenticationSuccessSendHandler userAuthenticationSuccessSendHandler;
 
     @Autowired
     private UserAuthenticationTokenStore tokenStore;
@@ -29,7 +29,6 @@ public class UserAuthenticationFilter extends AbstractAuthenticationProcessingFi
     public UserAuthenticationFilter(AuthenticationManager authenticationManager,
                                     RememberMeServices rememberMeServices) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
-        afterPropertiesSet();
         setRememberMeServices(rememberMeServices);
     }
 
@@ -72,7 +71,7 @@ public class UserAuthenticationFilter extends AbstractAuthenticationProcessingFi
 //            }
 //            authenticationEntryPoint.commence(request, response, exception);
 //        });
-        setAuthenticationSuccessHandler(successHandler);
+        setAuthenticationSuccessHandler(userAuthenticationSuccessSendHandler);
     }
 
 }

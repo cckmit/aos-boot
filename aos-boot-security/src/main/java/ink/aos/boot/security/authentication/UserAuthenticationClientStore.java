@@ -42,7 +42,6 @@ public class UserAuthenticationClientStore {
         response.addCookie(cookie);
     }
 
-
     private static String getCookiePath(HttpServletRequest request) {
         String contextPath = request.getContextPath();
         return (contextPath.length() > 0) ? contextPath : "/";

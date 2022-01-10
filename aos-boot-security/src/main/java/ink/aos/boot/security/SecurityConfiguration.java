@@ -136,4 +136,5 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public UserAuthenticationSuccessHandler userAuthenticationSuccessHandler() {
         return new UserAuthenticationSuccessHandler();
     }
+
 }

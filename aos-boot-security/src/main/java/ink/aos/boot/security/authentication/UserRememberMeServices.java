@@ -7,7 +7,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
@@ -38,10 +37,13 @@ public class UserRememberMeServices implements RememberMeServices, LogoutHandler
         if (userRememberMeToken == null) return null;
         UserAuthenticationToken userAuthenticationToken = new UserAuthenticationToken(userRememberMeToken.getUser(), UserAuthenticationTokenUtil.createToken(), securityUserAuthProperties.getExpiresIn());
         authenticationTokenStore.save(userAuthenticationToken);
-        Cookie accessTokenCookie = new Cookie("access_token", userAuthenticationToken.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setPath("/");
-        response.addCookie(accessTokenCookie);
+
+        UserAuthenticationClientStore.setAccessTokenCookie(userAuthenticationToken.getAccessToken(), request, response);
+
+//        if (StringUtils.isNotBlank(userAuthenticationToken.getRememberMeToken())) {
+//            UserAuthenticationClientStore.setRememberMeCookie(userAuthenticationToken.getRememberMeToken(), userAuthenticationToken.getRememberMeExpiresIn(), request, response);
+//        }
+
         return userAuthenticationToken;
     }
 

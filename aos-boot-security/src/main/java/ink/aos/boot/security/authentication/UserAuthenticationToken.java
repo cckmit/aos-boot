@@ -20,6 +20,7 @@ public class UserAuthenticationToken extends AbstractAuthenticationToken {
                                    String accessToken,
                                    long expiresIn) {
         super(user.getAuthorities());
+        setAuthenticated(true);
         this.user = user;
         this.accessToken = accessToken;
         this.expiresIn = expiresIn;

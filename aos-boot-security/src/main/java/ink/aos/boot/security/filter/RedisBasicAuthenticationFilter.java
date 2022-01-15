@@ -20,10 +20,6 @@ public class RedisBasicAuthenticationFilter extends BasicAuthenticationFilter {
     @Autowired
     private RedisBearerAuthenticationConverter authenticationConverter;
 
-    public RedisBasicAuthenticationFilter() {
-        super(null);
-    }
-
     public RedisBasicAuthenticationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
     }
@@ -43,4 +39,8 @@ public class RedisBasicAuthenticationFilter extends BasicAuthenticationFilter {
         chain.doFilter(request, response);
     }
 
+    @Override
+    protected boolean shouldNotFilterErrorDispatch() {
+        return false;
+    }
 }

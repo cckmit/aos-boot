@@ -1,5 +1,6 @@
 package ink.aos.boot.security.authentication;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import ink.aos.boot.security.User;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,8 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 @Slf4j
 @Getter
+//@JsonSerialize(using = UserAuthenticationTokenSerializer.class)
+@JsonDeserialize(using = UserAuthenticationTokenDeserializer.class)
 public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
     private final User user;

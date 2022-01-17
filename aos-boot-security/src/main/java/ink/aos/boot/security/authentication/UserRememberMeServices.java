@@ -4,6 +4,8 @@ import ink.aos.boot.security.config.SecurityUserAuthProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
@@ -39,7 +41,8 @@ public class UserRememberMeServices implements RememberMeServices, LogoutHandler
         authenticationTokenStore.save(userAuthenticationToken);
 
         UserAuthenticationClientStore.setAccessTokenCookie(userAuthenticationToken.getAccessToken(), request, response);
-
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(userAuthenticationToken);
 //        if (StringUtils.isNotBlank(userAuthenticationToken.getRememberMeToken())) {
 //            UserAuthenticationClientStore.setRememberMeCookie(userAuthenticationToken.getRememberMeToken(), userAuthenticationToken.getRememberMeExpiresIn(), request, response);
 //        }

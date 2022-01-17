@@ -24,7 +24,9 @@ import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 /**
@@ -34,491 +36,501 @@ import java.util.function.Consumer;
  *
  * @author Joe Grandja
  * @author Krisztian Toth
- * @since 0.0.1
  * @see RegisteredClient
  * @see AuthorizationGrantType
  * @see OAuth2Token
  * @see OAuth2AccessToken
  * @see OAuth2RefreshToken
+ * @since 0.0.1
  */
 public class OAuth2Authorization implements Serializable {
-	private static final long serialVersionUID = Version.SERIAL_VERSION_UID;
+    private static final long serialVersionUID = Version.SERIAL_VERSION_UID;
 
-	/**
-	 * The name of the {@link #getAttribute(String) attribute} used for the authorized scope(s).
-	 * The value of the attribute is of type {@code Set<String>}.
-	 */
-	public static final String AUTHORIZED_SCOPE_ATTRIBUTE_NAME =
-			OAuth2Authorization.class.getName().concat(".AUTHORIZED_SCOPE");
+    /**
+     * The name of the {@link #getAttribute(String) attribute} used for the authorized scope(s).
+     * The value of the attribute is of type {@code Set<String>}.
+     */
+    public static final String AUTHORIZED_SCOPE_ATTRIBUTE_NAME =
+            OAuth2Authorization.class.getName().concat(".AUTHORIZED_SCOPE");
 
-	private String id;
-	private String registeredClientId;
-	private String principalName;
-	private AuthorizationGrantType authorizationGrantType;
-	private Map<Class<? extends OAuth2Token>, Token<?>> tokens;
-	private Map<String, Object> attributes;
+    private String id;
+    private String registeredClientId;
+    private String principalName;
+    private AuthorizationGrantType authorizationGrantType;
+    private Map<Class<? extends OAuth2Token>, Token<?>> tokens;
+    private Map<String, Object> attributes;
 
-	protected OAuth2Authorization() {
-	}
+    protected OAuth2Authorization() {
+    }
 
-	/**
-	 * Returns the identifier for the authorization.
-	 *
-	 * @return the identifier for the authorization
-	 */
-	public String getId() {
-		return this.id;
-	}
+    /**
+     * Returns the identifier for the authorization.
+     *
+     * @return the identifier for the authorization
+     */
+    public String getId() {
+        return this.id;
+    }
 
-	/**
-	 * Returns the identifier for the {@link RegisteredClient#getId() registered client}.
-	 *
-	 * @return the {@link RegisteredClient#getId()}
-	 */
-	public String getRegisteredClientId() {
-		return this.registeredClientId;
-	}
+    /**
+     * Returns the identifier for the {@link RegisteredClient#getId() registered client}.
+     *
+     * @return the {@link RegisteredClient#getId()}
+     */
+    public String getRegisteredClientId() {
+        return this.registeredClientId;
+    }
 
-	/**
-	 * Returns the {@code Principal} name of the resource owner (or client).
-	 *
-	 * @return the {@code Principal} name of the resource owner (or client)
-	 */
-	public String getPrincipalName() {
-		return this.principalName;
-	}
+    /**
+     * Returns the {@code Principal} name of the resource owner (or client).
+     *
+     * @return the {@code Principal} name of the resource owner (or client)
+     */
+    public String getPrincipalName() {
+        return this.principalName;
+    }
 
-	/**
-	 * Returns the {@link AuthorizationGrantType authorization grant type} used for the authorization.
-	 *
-	 * @return the {@link AuthorizationGrantType} used for the authorization
-	 */
-	public AuthorizationGrantType getAuthorizationGrantType() {
-		return this.authorizationGrantType;
-	}
+    /**
+     * Returns the {@link AuthorizationGrantType authorization grant type} used for the authorization.
+     *
+     * @return the {@link AuthorizationGrantType} used for the authorization
+     */
+    public AuthorizationGrantType getAuthorizationGrantType() {
+        return this.authorizationGrantType;
+    }
 
-	/**
-	 * Returns the {@link Token} of type {@link OAuth2AccessToken}.
-	 *
-	 * @return the {@link Token} of type {@link OAuth2AccessToken}
-	 */
-	public Token<OAuth2AccessToken> getAccessToken() {
-		return getToken(OAuth2AccessToken.class);
-	}
+    /**
+     * Returns the {@link Token} of type {@link OAuth2AccessToken}.
+     *
+     * @return the {@link Token} of type {@link OAuth2AccessToken}
+     */
+    public Token<OAuth2AccessToken> getAccessToken() {
+        return getToken(OAuth2AccessToken.class);
+    }
 
-	/**
-	 * Returns the {@link Token} of type {@link OAuth2RefreshToken}.
-	 *
-	 * @return the {@link Token} of type {@link OAuth2RefreshToken}, or {@code null} if not available
-	 */
-	@Nullable
-	public Token<OAuth2RefreshToken> getRefreshToken() {
-		return getToken(OAuth2RefreshToken.class);
-	}
+    /**
+     * Returns the {@link Token} of type {@link OAuth2RefreshToken}.
+     *
+     * @return the {@link Token} of type {@link OAuth2RefreshToken}, or {@code null} if not available
+     */
+    @Nullable
+    public Token<OAuth2RefreshToken> getRefreshToken() {
+        return getToken(OAuth2RefreshToken.class);
+    }
 
-	/**
-	 * Returns the {@link Token} of type {@code tokenType}.
-	 *
-	 * @param tokenType the token type
-	 * @param <T> the type of the token
-	 * @return the {@link Token}, or {@code null} if not available
-	 */
-	@Nullable
-	@SuppressWarnings("unchecked")
-	public <T extends OAuth2Token> Token<T> getToken(Class<T> tokenType) {
-		Assert.notNull(tokenType, "tokenType cannot be null");
-		Token<?> token = this.tokens.get(tokenType);
-		return token != null ? (Token<T>) token : null;
-	}
+    /**
+     * Returns the {@link Token} of type {@code tokenType}.
+     *
+     * @param tokenType the token type
+     * @param <T>       the type of the token
+     * @return the {@link Token}, or {@code null} if not available
+     */
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T extends OAuth2Token> Token<T> getToken(Class<T> tokenType) {
+        Assert.notNull(tokenType, "tokenType cannot be null");
+        Token<?> token = this.tokens.get(tokenType);
+        return token != null ? (Token<T>) token : null;
+    }
 
-	/**
-	 * Returns the {@link Token} matching the {@code tokenValue}.
-	 *
-	 * @param tokenValue the token value
-	 * @param <T> the type of the token
-	 * @return the {@link Token}, or {@code null} if not available
-	 */
-	@Nullable
-	@SuppressWarnings("unchecked")
-	public <T extends OAuth2Token> Token<T> getToken(String tokenValue) {
-		Assert.hasText(tokenValue, "tokenValue cannot be empty");
-		for (Token<?> token : this.tokens.values()) {
-			if (token.getToken().getTokenValue().equals(tokenValue)) {
-				return (Token<T>) token;
-			}
-		}
-		return null;
-	}
+    /**
+     * Returns the {@link Token} matching the {@code tokenValue}.
+     *
+     * @param tokenValue the token value
+     * @param <T>        the type of the token
+     * @return the {@link Token}, or {@code null} if not available
+     */
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T extends OAuth2Token> Token<T> getToken(String tokenValue) {
+        Assert.hasText(tokenValue, "tokenValue cannot be empty");
+        for (Token<?> token : this.tokens.values()) {
+            if (token.getToken().getTokenValue().equals(tokenValue)) {
+                return (Token<T>) token;
+            }
+        }
+        return null;
+    }
 
-	/**
-	 * Returns the attribute(s) associated to the authorization.
-	 *
-	 * @return a {@code Map} of the attribute(s)
-	 */
-	public Map<String, Object> getAttributes() {
-		return this.attributes;
-	}
+    /**
+     * Returns the attribute(s) associated to the authorization.
+     *
+     * @return a {@code Map} of the attribute(s)
+     */
+    public Map<String, Object> getAttributes() {
+        return this.attributes;
+    }
 
-	/**
-	 * Returns the value of an attribute associated to the authorization.
-	 *
-	 * @param name the name of the attribute
-	 * @param <T> the type of the attribute
-	 * @return the value of an attribute associated to the authorization, or {@code null} if not available
-	 */
-	@Nullable
-	@SuppressWarnings("unchecked")
-	public <T> T getAttribute(String name) {
-		Assert.hasText(name, "name cannot be empty");
-		return (T) this.attributes.get(name);
-	}
+    /**
+     * Returns the value of an attribute associated to the authorization.
+     *
+     * @param name the name of the attribute
+     * @param <T>  the type of the attribute
+     * @return the value of an attribute associated to the authorization, or {@code null} if not available
+     */
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public <T> T getAttribute(String name) {
+        Assert.hasText(name, "name cannot be empty");
+        return (T) this.attributes.get(name);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null || getClass() != obj.getClass()) {
-			return false;
-		}
-		OAuth2Authorization that = (OAuth2Authorization) obj;
-		return Objects.equals(this.id, that.id) &&
-				Objects.equals(this.registeredClientId, that.registeredClientId) &&
-				Objects.equals(this.principalName, that.principalName) &&
-				Objects.equals(this.authorizationGrantType, that.authorizationGrantType) &&
-				Objects.equals(this.tokens, that.tokens) &&
-				Objects.equals(this.attributes, that.attributes);
-	}
+    public long getExpiresIn() {
+        AtomicLong l = new AtomicLong(0L);
+        tokens.values().forEach(token -> {
+            long _l = ChronoUnit.SECONDS.between(Objects.requireNonNull(token.getToken().getIssuedAt()), token.getToken().getExpiresAt());
+            if (_l > l.get()) l.set(_l);
+        });
+        return l.get();
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(this.id, this.registeredClientId, this.principalName,
-				this.authorizationGrantType, this.tokens, this.attributes);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        OAuth2Authorization that = (OAuth2Authorization) obj;
+        return Objects.equals(this.id, that.id) &&
+                Objects.equals(this.registeredClientId, that.registeredClientId) &&
+                Objects.equals(this.principalName, that.principalName) &&
+                Objects.equals(this.authorizationGrantType, that.authorizationGrantType) &&
+                Objects.equals(this.tokens, that.tokens) &&
+                Objects.equals(this.attributes, that.attributes);
+    }
 
-	/**
-	 * Returns a new {@link Builder}, initialized with the provided {@link RegisteredClient#getId()}.
-	 *
-	 * @param registeredClient the {@link RegisteredClient}
-	 * @return the {@link Builder}
-	 */
-	public static Builder withRegisteredClient(RegisteredClient registeredClient) {
-		Assert.notNull(registeredClient, "registeredClient cannot be null");
-		return new Builder(registeredClient.getId());
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.id, this.registeredClientId, this.principalName,
+                this.authorizationGrantType, this.tokens, this.attributes);
+    }
 
-	/**
-	 * Returns a new {@link Builder}, initialized with the values from the provided {@code OAuth2Authorization}.
-	 *
-	 * @param authorization the {@code OAuth2Authorization} used for initializing the {@link Builder}
-	 * @return the {@link Builder}
-	 */
-	public static Builder from(OAuth2Authorization authorization) {
-		Assert.notNull(authorization, "authorization cannot be null");
-		return new Builder(authorization.getRegisteredClientId())
-				.id(authorization.getId())
-				.principalName(authorization.getPrincipalName())
-				.authorizationGrantType(authorization.getAuthorizationGrantType())
-				.tokens(authorization.tokens)
-				.attributes(attrs -> attrs.putAll(authorization.getAttributes()));
-	}
+    /**
+     * Returns a new {@link Builder}, initialized with the provided {@link RegisteredClient#getId()}.
+     *
+     * @param registeredClient the {@link RegisteredClient}
+     * @return the {@link Builder}
+     */
+    public static Builder withRegisteredClient(RegisteredClient registeredClient) {
+        Assert.notNull(registeredClient, "registeredClient cannot be null");
+        return new Builder(registeredClient.getId());
+    }
 
-	/**
-	 * A holder of an OAuth 2.0 Token and it's associated metadata.
-	 *
-	 * @author Joe Grandja
-	 * @since 0.1.0
-	 */
-	public static class Token<T extends OAuth2Token> implements Serializable {
-		private static final long serialVersionUID = Version.SERIAL_VERSION_UID;
-		protected static final String TOKEN_METADATA_NAMESPACE = "metadata.token.";
+    /**
+     * Returns a new {@link Builder}, initialized with the values from the provided {@code OAuth2Authorization}.
+     *
+     * @param authorization the {@code OAuth2Authorization} used for initializing the {@link Builder}
+     * @return the {@link Builder}
+     */
+    public static Builder from(OAuth2Authorization authorization) {
+        Assert.notNull(authorization, "authorization cannot be null");
+        return new Builder(authorization.getRegisteredClientId())
+                .id(authorization.getId())
+                .principalName(authorization.getPrincipalName())
+                .authorizationGrantType(authorization.getAuthorizationGrantType())
+                .tokens(authorization.tokens)
+                .attributes(attrs -> attrs.putAll(authorization.getAttributes()));
+    }
 
-		/**
-		 * The name of the metadata that indicates if the token has been invalidated.
-		 */
-		public static final String INVALIDATED_METADATA_NAME = TOKEN_METADATA_NAMESPACE.concat("invalidated");
+    /**
+     * A holder of an OAuth 2.0 Token and it's associated metadata.
+     *
+     * @author Joe Grandja
+     * @since 0.1.0
+     */
+    public static class Token<T extends OAuth2Token> implements Serializable {
+        private static final long serialVersionUID = Version.SERIAL_VERSION_UID;
+        protected static final String TOKEN_METADATA_NAMESPACE = "metadata.token.";
 
-		/**
-		 * The name of the metadata used for the claims of the token.
-		 */
-		public static final String CLAIMS_METADATA_NAME = TOKEN_METADATA_NAMESPACE.concat("claims");
+        /**
+         * The name of the metadata that indicates if the token has been invalidated.
+         */
+        public static final String INVALIDATED_METADATA_NAME = TOKEN_METADATA_NAMESPACE.concat("invalidated");
 
-		private final T token;
-		private final Map<String, Object> metadata;
+        /**
+         * The name of the metadata used for the claims of the token.
+         */
+        public static final String CLAIMS_METADATA_NAME = TOKEN_METADATA_NAMESPACE.concat("claims");
 
-		protected Token(T token) {
-			this(token, defaultMetadata());
-		}
+        private final T token;
+        private final Map<String, Object> metadata;
 
-		protected Token(T token, Map<String, Object> metadata) {
-			this.token = token;
-			this.metadata = Collections.unmodifiableMap(metadata);
-		}
+        protected Token(T token) {
+            this(token, defaultMetadata());
+        }
 
-		/**
-		 * Returns the token of type {@link OAuth2Token}.
-		 *
-		 * @return the token of type {@link OAuth2Token}
-		 */
-		public T getToken() {
-			return this.token;
-		}
+        protected Token(T token, Map<String, Object> metadata) {
+            this.token = token;
+            this.metadata = Collections.unmodifiableMap(metadata);
+        }
 
-		/**
-		 * Returns {@code true} if the token has been invalidated (e.g. revoked).
-		 * The default is {@code false}.
-		 *
-		 * @return {@code true} if the token has been invalidated, {@code false} otherwise
-		 */
-		public boolean isInvalidated() {
-			return Boolean.TRUE.equals(getMetadata(INVALIDATED_METADATA_NAME));
-		}
+        /**
+         * Returns the token of type {@link OAuth2Token}.
+         *
+         * @return the token of type {@link OAuth2Token}
+         */
+        public T getToken() {
+            return this.token;
+        }
 
-		/**
-		 * Returns {@code true} if the token has expired.
-		 *
-		 * @return {@code true} if the token has expired, {@code false} otherwise
-		 */
-		public boolean isExpired() {
-			return getToken().getExpiresAt() != null && Instant.now().isAfter(getToken().getExpiresAt());
-		}
+        /**
+         * Returns {@code true} if the token has been invalidated (e.g. revoked).
+         * The default is {@code false}.
+         *
+         * @return {@code true} if the token has been invalidated, {@code false} otherwise
+         */
+        public boolean isInvalidated() {
+            return Boolean.TRUE.equals(getMetadata(INVALIDATED_METADATA_NAME));
+        }
 
-		/**
-		 * Returns {@code true} if the token is before the time it can be used.
-		 *
-		 * @return {@code true} if the token is before the time it can be used, {@code false} otherwise
-		 */
-		public boolean isBeforeUse() {
-			Instant notBefore = null;
-			if (!CollectionUtils.isEmpty(getClaims())) {
-				notBefore = (Instant) getClaims().get("nbf");
-			}
-			return notBefore != null && Instant.now().isBefore(notBefore);
-		}
+        /**
+         * Returns {@code true} if the token has expired.
+         *
+         * @return {@code true} if the token has expired, {@code false} otherwise
+         */
+        public boolean isExpired() {
+            return getToken().getExpiresAt() != null && Instant.now().isAfter(getToken().getExpiresAt());
+        }
 
-		/**
-		 * Returns {@code true} if the token is currently active.
-		 *
-		 * @return {@code true} if the token is currently active, {@code false} otherwise
-		 */
-		public boolean isActive() {
-			return !isInvalidated() && !isExpired() && !isBeforeUse();
-		}
+        /**
+         * Returns {@code true} if the token is before the time it can be used.
+         *
+         * @return {@code true} if the token is before the time it can be used, {@code false} otherwise
+         */
+        public boolean isBeforeUse() {
+            Instant notBefore = null;
+            if (!CollectionUtils.isEmpty(getClaims())) {
+                notBefore = (Instant) getClaims().get("nbf");
+            }
+            return notBefore != null && Instant.now().isBefore(notBefore);
+        }
 
-		/**
-		 * Returns the claims associated to the token.
-		 *
-		 * @return a {@code Map} of the claims, or {@code null} if not available
-		 */
-		@Nullable
-		public Map<String, Object> getClaims() {
-			return getMetadata(CLAIMS_METADATA_NAME);
-		}
+        /**
+         * Returns {@code true} if the token is currently active.
+         *
+         * @return {@code true} if the token is currently active, {@code false} otherwise
+         */
+        public boolean isActive() {
+            return !isInvalidated() && !isExpired() && !isBeforeUse();
+        }
 
-		/**
-		 * Returns the value of the metadata associated to the token.
-		 *
-		 * @param name the name of the metadata
-		 * @param <V> the value type of the metadata
-		 * @return the value of the metadata, or {@code null} if not available
-		 */
-		@Nullable
-		@SuppressWarnings("unchecked")
-		public <V> V getMetadata(String name) {
-			Assert.hasText(name, "name cannot be empty");
-			return (V) this.metadata.get(name);
-		}
+        /**
+         * Returns the claims associated to the token.
+         *
+         * @return a {@code Map} of the claims, or {@code null} if not available
+         */
+        @Nullable
+        public Map<String, Object> getClaims() {
+            return getMetadata(CLAIMS_METADATA_NAME);
+        }
 
-		/**
-		 * Returns the metadata associated to the token.
-		 *
-		 * @return a {@code Map} of the metadata
-		 */
-		public Map<String, Object> getMetadata() {
-			return this.metadata;
-		}
+        /**
+         * Returns the value of the metadata associated to the token.
+         *
+         * @param name the name of the metadata
+         * @param <V>  the value type of the metadata
+         * @return the value of the metadata, or {@code null} if not available
+         */
+        @Nullable
+        @SuppressWarnings("unchecked")
+        public <V> V getMetadata(String name) {
+            Assert.hasText(name, "name cannot be empty");
+            return (V) this.metadata.get(name);
+        }
 
-		protected static Map<String, Object> defaultMetadata() {
-			Map<String, Object> metadata = new HashMap<>();
-			metadata.put(INVALIDATED_METADATA_NAME, false);
-			return metadata;
-		}
+        /**
+         * Returns the metadata associated to the token.
+         *
+         * @return a {@code Map} of the metadata
+         */
+        public Map<String, Object> getMetadata() {
+            return this.metadata;
+        }
 
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj) {
-				return true;
-			}
-			if (obj == null || getClass() != obj.getClass()) {
-				return false;
-			}
-			Token<?> that = (Token<?>) obj;
-			return Objects.equals(this.token, that.token) &&
-					Objects.equals(this.metadata, that.metadata);
-		}
+        protected static Map<String, Object> defaultMetadata() {
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put(INVALIDATED_METADATA_NAME, false);
+            return metadata;
+        }
 
-		@Override
-		public int hashCode() {
-			return Objects.hash(this.token, this.metadata);
-		}
-	}
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            Token<?> that = (Token<?>) obj;
+            return Objects.equals(this.token, that.token) &&
+                    Objects.equals(this.metadata, that.metadata);
+        }
 
-	/**
-	 * A builder for {@link OAuth2Authorization}.
-	 */
-	public static class Builder implements Serializable {
-		private static final long serialVersionUID = Version.SERIAL_VERSION_UID;
-		private String id;
-		private final String registeredClientId;
-		private String principalName;
-		private AuthorizationGrantType authorizationGrantType;
-		private Map<Class<? extends OAuth2Token>, Token<?>> tokens = new HashMap<>();
-		private final Map<String, Object> attributes = new HashMap<>();
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.token, this.metadata);
+        }
+    }
 
-		protected Builder(String registeredClientId) {
-			this.registeredClientId = registeredClientId;
-		}
+    /**
+     * A builder for {@link OAuth2Authorization}.
+     */
+    public static class Builder implements Serializable {
+        private static final long serialVersionUID = Version.SERIAL_VERSION_UID;
+        private String id;
+        private final String registeredClientId;
+        private String principalName;
+        private AuthorizationGrantType authorizationGrantType;
+        private Map<Class<? extends OAuth2Token>, Token<?>> tokens = new HashMap<>();
+        private final Map<String, Object> attributes = new HashMap<>();
 
-		/**
-		 * Sets the identifier for the authorization.
-		 *
-		 * @param id the identifier for the authorization
-		 * @return the {@link Builder}
-		 */
-		public Builder id(String id) {
-			this.id = id;
-			return this;
-		}
+        protected Builder(String registeredClientId) {
+            this.registeredClientId = registeredClientId;
+        }
 
-		/**
-		 * Sets the {@code Principal} name of the resource owner (or client).
-		 *
-		 * @param principalName the {@code Principal} name of the resource owner (or client)
-		 * @return the {@link Builder}
-		 */
-		public Builder principalName(String principalName) {
-			this.principalName = principalName;
-			return this;
-		}
+        /**
+         * Sets the identifier for the authorization.
+         *
+         * @param id the identifier for the authorization
+         * @return the {@link Builder}
+         */
+        public Builder id(String id) {
+            this.id = id;
+            return this;
+        }
 
-		/**
-		 * Sets the {@link AuthorizationGrantType authorization grant type} used for the authorization.
-		 *
-		 * @param authorizationGrantType the {@link AuthorizationGrantType}
-		 * @return the {@link Builder}
-		 */
-		public Builder authorizationGrantType(AuthorizationGrantType authorizationGrantType) {
-			this.authorizationGrantType = authorizationGrantType;
-			return this;
-		}
+        /**
+         * Sets the {@code Principal} name of the resource owner (or client).
+         *
+         * @param principalName the {@code Principal} name of the resource owner (or client)
+         * @return the {@link Builder}
+         */
+        public Builder principalName(String principalName) {
+            this.principalName = principalName;
+            return this;
+        }
 
-		/**
-		 * Sets the {@link OAuth2AccessToken access token}.
-		 *
-		 * @param accessToken the {@link OAuth2AccessToken}
-		 * @return the {@link Builder}
-		 */
-		public Builder accessToken(OAuth2AccessToken accessToken) {
-			return token(accessToken);
-		}
+        /**
+         * Sets the {@link AuthorizationGrantType authorization grant type} used for the authorization.
+         *
+         * @param authorizationGrantType the {@link AuthorizationGrantType}
+         * @return the {@link Builder}
+         */
+        public Builder authorizationGrantType(AuthorizationGrantType authorizationGrantType) {
+            this.authorizationGrantType = authorizationGrantType;
+            return this;
+        }
 
-		/**
-		 * Sets the {@link OAuth2RefreshToken refresh token}.
-		 *
-		 * @param refreshToken the {@link OAuth2RefreshToken}
-		 * @return the {@link Builder}
-		 */
-		public Builder refreshToken(OAuth2RefreshToken refreshToken) {
-			return token(refreshToken);
-		}
+        /**
+         * Sets the {@link OAuth2AccessToken access token}.
+         *
+         * @param accessToken the {@link OAuth2AccessToken}
+         * @return the {@link Builder}
+         */
+        public Builder accessToken(OAuth2AccessToken accessToken) {
+            return token(accessToken);
+        }
 
-		/**
-		 * Sets the {@link OAuth2Token token}.
-		 *
-		 * @param token the token
-		 * @param <T> the type of the token
-		 * @return the {@link Builder}
-		 */
-		public <T extends OAuth2Token> Builder token(T token) {
-			return token(token, (metadata) -> {});
-		}
+        /**
+         * Sets the {@link OAuth2RefreshToken refresh token}.
+         *
+         * @param refreshToken the {@link OAuth2RefreshToken}
+         * @return the {@link Builder}
+         */
+        public Builder refreshToken(OAuth2RefreshToken refreshToken) {
+            return token(refreshToken);
+        }
 
-		/**
-		 * Sets the {@link OAuth2Token token} and associated metadata.
-		 *
-		 * @param token the token
-		 * @param metadataConsumer a {@code Consumer} of the metadata {@code Map}
-		 * @param <T> the type of the token
-		 * @return the {@link Builder}
-		 */
-		public <T extends OAuth2Token> Builder token(T token,
-				Consumer<Map<String, Object>> metadataConsumer) {
+        /**
+         * Sets the {@link OAuth2Token token}.
+         *
+         * @param token the token
+         * @param <T>   the type of the token
+         * @return the {@link Builder}
+         */
+        public <T extends OAuth2Token> Builder token(T token) {
+            return token(token, (metadata) -> {
+            });
+        }
 
-			Assert.notNull(token, "token cannot be null");
-			Map<String, Object> metadata = Token.defaultMetadata();
-			Token<?> existingToken = this.tokens.get(token.getClass());
-			if (existingToken != null) {
-				metadata.putAll(existingToken.getMetadata());
-			}
-			metadataConsumer.accept(metadata);
-			Class<? extends OAuth2Token> tokenClass = token.getClass();
-			this.tokens.put(tokenClass, new Token<>(token, metadata));
-			return this;
-		}
+        /**
+         * Sets the {@link OAuth2Token token} and associated metadata.
+         *
+         * @param token            the token
+         * @param metadataConsumer a {@code Consumer} of the metadata {@code Map}
+         * @param <T>              the type of the token
+         * @return the {@link Builder}
+         */
+        public <T extends OAuth2Token> Builder token(T token,
+                                                     Consumer<Map<String, Object>> metadataConsumer) {
 
-		protected final Builder tokens(Map<Class<? extends OAuth2Token>, Token<?>> tokens) {
-			this.tokens = new HashMap<>(tokens);
-			return this;
-		}
+            Assert.notNull(token, "token cannot be null");
+            Map<String, Object> metadata = Token.defaultMetadata();
+            Token<?> existingToken = this.tokens.get(token.getClass());
+            if (existingToken != null) {
+                metadata.putAll(existingToken.getMetadata());
+            }
+            metadataConsumer.accept(metadata);
+            Class<? extends OAuth2Token> tokenClass = token.getClass();
+            this.tokens.put(tokenClass, new Token<>(token, metadata));
+            return this;
+        }
 
-		/**
-		 * Adds an attribute associated to the authorization.
-		 *
-		 * @param name the name of the attribute
-		 * @param value the value of the attribute
-		 * @return the {@link Builder}
-		 */
-		public Builder attribute(String name, Object value) {
-			Assert.hasText(name, "name cannot be empty");
-			Assert.notNull(value, "value cannot be null");
-			this.attributes.put(name, value);
-			return this;
-		}
+        protected final Builder tokens(Map<Class<? extends OAuth2Token>, Token<?>> tokens) {
+            this.tokens = new HashMap<>(tokens);
+            return this;
+        }
 
-		/**
-		 * A {@code Consumer} of the attributes {@code Map}
-		 * allowing the ability to add, replace, or remove.
-		 *
-		 * @param attributesConsumer a {@link Consumer} of the attributes {@code Map}
-		 * @return the {@link Builder}
-		 */
-		public Builder attributes(Consumer<Map<String, Object>> attributesConsumer) {
-			attributesConsumer.accept(this.attributes);
-			return this;
-		}
+        /**
+         * Adds an attribute associated to the authorization.
+         *
+         * @param name  the name of the attribute
+         * @param value the value of the attribute
+         * @return the {@link Builder}
+         */
+        public Builder attribute(String name, Object value) {
+            Assert.hasText(name, "name cannot be empty");
+            Assert.notNull(value, "value cannot be null");
+            this.attributes.put(name, value);
+            return this;
+        }
 
-		/**
-		 * Builds a new {@link OAuth2Authorization}.
-		 *
-		 * @return the {@link OAuth2Authorization}
-		 */
-		public OAuth2Authorization build() {
-			Assert.hasText(this.principalName, "principalName cannot be empty");
-			Assert.notNull(this.authorizationGrantType, "authorizationGrantType cannot be null");
+        /**
+         * A {@code Consumer} of the attributes {@code Map}
+         * allowing the ability to add, replace, or remove.
+         *
+         * @param attributesConsumer a {@link Consumer} of the attributes {@code Map}
+         * @return the {@link Builder}
+         */
+        public Builder attributes(Consumer<Map<String, Object>> attributesConsumer) {
+            attributesConsumer.accept(this.attributes);
+            return this;
+        }
 
-			OAuth2Authorization authorization = new OAuth2Authorization();
-			if (!StringUtils.hasText(this.id)) {
-				this.id = UUID.randomUUID().toString();
-			}
-			authorization.id = this.id;
-			authorization.registeredClientId = this.registeredClientId;
-			authorization.principalName = this.principalName;
-			authorization.authorizationGrantType = this.authorizationGrantType;
-			authorization.tokens = Collections.unmodifiableMap(this.tokens);
-			authorization.attributes = Collections.unmodifiableMap(this.attributes);
-			return authorization;
-		}
+        /**
+         * Builds a new {@link OAuth2Authorization}.
+         *
+         * @return the {@link OAuth2Authorization}
+         */
+        public OAuth2Authorization build() {
+            Assert.hasText(this.principalName, "principalName cannot be empty");
+            Assert.notNull(this.authorizationGrantType, "authorizationGrantType cannot be null");
 
-	}
+            OAuth2Authorization authorization = new OAuth2Authorization();
+            if (!StringUtils.hasText(this.id)) {
+                this.id = UUID.randomUUID().toString();
+            }
+            authorization.id = this.id;
+            authorization.registeredClientId = this.registeredClientId;
+            authorization.principalName = this.principalName;
+            authorization.authorizationGrantType = this.authorizationGrantType;
+            authorization.tokens = Collections.unmodifiableMap(this.tokens);
+            authorization.attributes = Collections.unmodifiableMap(this.attributes);
+            return authorization;
+        }
+
+    }
 
 }

@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * All rights Reserved, Designed By aos.ink
@@ -40,22 +41,20 @@ public abstract class AbstractApp implements InitializingBean {
     }
 
     protected static void logApplicationStartup(Environment env) {
-        String protocol = "http";
-        if (env.getProperty("server.ssl.key-store") != null) {
-            protocol = "https";
-        }
+        String protocol = Optional.ofNullable(env.getProperty("server.ssl.key-store")).map(key -> "https").orElse("http");
         String serverPort = env.getProperty("local.server.port");
-        String contextPath = env.getProperty("server.servlet.context-path");
-        if (StringUtils.isBlank(contextPath)) {
-            contextPath = "/";
-        }
+        String contextPath = Optional
+                .ofNullable(env.getProperty("server.servlet.context-path"))
+                .filter(StringUtils::isNotBlank)
+                .orElse("/");
         String hostAddress = "localhost";
         try {
             hostAddress = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
             log.warn("The host name could not be determined, using `localhost` as fallback");
         }
-        log.info("\n----------------------------------------------------------\n\t" +
+        log.info(
+                "\n----------------------------------------------------------\n\t" +
                         "Application '{}' is running! Access URLs:\n\t" +
                         "Local: \t\t{}://localhost:{}{}\n\t" +
                         "External: \t{}://{}:{}{}\n\t" +
@@ -68,13 +67,18 @@ public abstract class AbstractApp implements InitializingBean {
                 hostAddress,
                 serverPort,
                 contextPath,
-                env.getActiveProfiles());
+                env.getActiveProfiles().length == 0 ? env.getDefaultProfiles() : env.getActiveProfiles()
+        );
 
         String configServerStatus = env.getProperty("configserver.status");
         if (configServerStatus == null) {
             configServerStatus = "Not found or not setup for this application";
         }
-        log.info("\n----------------------------------------------------------\n\t" +
-                "Config Server: \t{}\n----------------------------------------------------------", configServerStatus);
+        log.info(
+                "\n----------------------------------------------------------\n\t" +
+                        "Config Server: \t{}\n----------------------------------------------------------",
+                configServerStatus
+        );
     }
+
 }

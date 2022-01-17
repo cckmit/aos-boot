@@ -1,5 +1,6 @@
 package ink.aos.boot.security;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonDeserialize(using = UserDeserializer.class)
 public class User implements UserDetails, CredentialsContainer {
 
     private String username;

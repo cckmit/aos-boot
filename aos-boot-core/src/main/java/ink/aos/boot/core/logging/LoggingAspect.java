@@ -32,7 +32,7 @@ public class LoggingAspect {
     /**
      * Pointcut that matches all repositories, services and Web REST endpoints.
      */
-    @Pointcut("within(@org.springframework.stereotype.Service *)")
+    @Pointcut("within(@org.springframework.stereotype.Service *) && within(ink.aos..*)")
     public void springBeanPointcut() {
         // Method is empty as this is just a Pointcut, the implementations are in the advices.
     }

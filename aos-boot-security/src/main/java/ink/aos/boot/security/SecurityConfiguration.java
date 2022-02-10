@@ -50,7 +50,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         if (diySecurityConfig != null) {
             diySecurityConfig.configure(auth);
         }
-        auth.authenticationProvider(userAuthenticationProvider());
     }
 
     @Override
@@ -106,8 +105,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public RedisBasicAuthenticationFilter basicAuthenticationFilter() throws Exception {
-        return new RedisBasicAuthenticationFilter(authenticationManager());
+    public RedisBasicAuthenticationFilter basicAuthenticationFilter() {
+        return new RedisBasicAuthenticationFilter();
     }
 
     @Bean
@@ -118,11 +117,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public RedisBearerAuthenticationConverter bearerAuthenticationConverter() {
         return new RedisBearerAuthenticationConverter();
-    }
-
-    @Bean
-    public UserAuthenticationProvider userAuthenticationProvider() {
-        return new UserAuthenticationProvider();
     }
 
     @Bean

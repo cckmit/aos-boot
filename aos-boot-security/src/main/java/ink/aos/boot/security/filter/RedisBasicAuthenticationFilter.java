@@ -1,12 +1,12 @@
 package ink.aos.boot.security.filter;
 
 import ink.aos.boot.security.authentication.RedisBearerAuthenticationConverter;
+import ink.aos.boot.security.authentication.UserAuthenticationToken;
+import ink.aos.boot.security.authentication.UserAuthenticationTokenStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -15,13 +15,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
-public class RedisBasicAuthenticationFilter extends BasicAuthenticationFilter {
+public class RedisBasicAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private RedisBearerAuthenticationConverter authenticationConverter;
+    @Autowired
+    private UserAuthenticationTokenStore userAuthenticationTokenStore;
 
-    public RedisBasicAuthenticationFilter(AuthenticationManager authenticationManager) {
-        super(authenticationManager);
+    public RedisBasicAuthenticationFilter() {
     }
 
     @Override
@@ -29,9 +30,10 @@ public class RedisBasicAuthenticationFilter extends BasicAuthenticationFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws IOException, ServletException {
         try {
-            Authentication authentication = authenticationConverter.convert(request);
+            UserAuthenticationToken authentication = (UserAuthenticationToken) authenticationConverter.convert(request);
             if (authentication != null) {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                userAuthenticationTokenStore.delay(authentication);
             }
         } catch (Exception e) {
             logger.warn(e.getClass().getName() + ":" + e.getMessage());
@@ -43,4 +45,5 @@ public class RedisBasicAuthenticationFilter extends BasicAuthenticationFilter {
     protected boolean shouldNotFilterErrorDispatch() {
         return false;
     }
+
 }

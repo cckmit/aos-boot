@@ -1,0 +1,1 @@
+package ink.aos.boot.oapi;

@@ -32,6 +32,7 @@
         <module>aos-boot-ap</module>
         <module>aos-boot-elasticsearch</module>
         <module>aos-boot-security</module>
+        <module>aos-boot-oapi</module>
     </modules>
 
 </project>

@@ -12,6 +12,8 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 @JsonDeserialize(using = UserAuthenticationTokenDeserializer.class)
 public class UserAuthenticationToken extends AbstractAuthenticationToken {
 
+    public static final String BEARER_TOKEN_TYPE = "Bearer";
+
     private final User user;
     private final String accessToken;
     private final long expiresIn;

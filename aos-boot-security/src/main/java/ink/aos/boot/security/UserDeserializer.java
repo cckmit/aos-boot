@@ -1,7 +1,6 @@
 package ink.aos.boot.security;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -10,9 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.MissingNode;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UserDeserializer extends JsonDeserializer {
 
@@ -20,7 +19,7 @@ public class UserDeserializer extends JsonDeserializer {
     };
 
     @Override
-    public Object deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public Object deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         ObjectMapper mapper = (ObjectMapper) jp.getCodec();
         JsonNode jsonNode = mapper.readTree(jp);
         List<UserGrantedAuthority> authorities = mapper.convertValue(jsonNode.get("authorities"),
@@ -40,7 +39,7 @@ public class UserDeserializer extends JsonDeserializer {
                 .mobile(mobile)
                 .email(email)
                 .authorities(authorities)
-                .uaaTypeCodes(readArray(jsonNode, "uaaTypeCodes"))
+                .uaaTypeCodes(readMap(jsonNode, "uaaTypeCodes"))
                 .build();
         if (passwordNode.asText(null) == null) {
             result.eraseCredentials();
@@ -52,17 +51,13 @@ public class UserDeserializer extends JsonDeserializer {
         return jsonNode.has(field) ? jsonNode.get(field) : MissingNode.getInstance();
     }
 
-    private List<String> readArray(JsonNode jsonNode, String field) {
-        List<String> s = new ArrayList<>();
+    private Map<String, String> readMap(JsonNode jsonNode, String field) {
+        Map<String, String> m = new HashMap<>();
         JsonNode node = jsonNode.has(field) ? jsonNode.get(field) : MissingNode.getInstance();
-        if (node.isArray()) {
-            Iterator<JsonNode> it = node.iterator();
-            while (it.hasNext()) {
-                JsonNode n = it.next();
-                s.add(n.asText());
-            }
-        }
-        return s;
+        node.fields().forEachRemaining(stringJsonNodeEntry -> {
+            m.put(stringJsonNodeEntry.getKey(), stringJsonNodeEntry.getValue().asText());
+        });
+        return m;
     }
 
 }

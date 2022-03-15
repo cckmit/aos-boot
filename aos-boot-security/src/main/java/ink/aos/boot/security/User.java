@@ -6,6 +6,7 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
+import java.util.Map;
 
 @Builder
 @Getter
@@ -30,7 +31,7 @@ public class User implements UserDetails, CredentialsContainer {
     private String email;
     private String mobile;
 
-    private List<String> uaaTypeCodes;
+    private Map<String, String> uaaTypeCodes;
 
     @Override
     public void eraseCredentials() {

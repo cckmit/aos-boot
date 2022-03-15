@@ -18,6 +18,9 @@ public class UserDeserializer extends JsonDeserializer {
     private static final TypeReference<List<UserGrantedAuthority>> SIMPLE_GRANTED_AUTHORITY_SET = new TypeReference<List<UserGrantedAuthority>>() {
     };
 
+    private static final TypeReference<HashMap<String, String>> hashMapTypeReference = new TypeReference<HashMap<String, String>>() {
+    };
+
     @Override
     public Object deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         ObjectMapper mapper = (ObjectMapper) jp.getCodec();
@@ -39,7 +42,7 @@ public class UserDeserializer extends JsonDeserializer {
                 .mobile(mobile)
                 .email(email)
                 .authorities(authorities)
-                .uaaTypeCodes(readMap(jsonNode, "uaaTypeCodes"))
+                .uaaTypeCodes(mapper.convertValue(jsonNode.get("uaaTypeCodes"), hashMapTypeReference))
                 .build();
         if (passwordNode.asText(null) == null) {
             result.eraseCredentials();

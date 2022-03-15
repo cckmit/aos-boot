@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.MissingNode;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class UserDeserializer extends JsonDeserializer {
@@ -38,6 +40,7 @@ public class UserDeserializer extends JsonDeserializer {
                 .mobile(mobile)
                 .email(email)
                 .authorities(authorities)
+                .uaaTypeCodes(readArray(jsonNode, "uaaTypeCodes"))
                 .build();
         if (passwordNode.asText(null) == null) {
             result.eraseCredentials();
@@ -47,6 +50,19 @@ public class UserDeserializer extends JsonDeserializer {
 
     private JsonNode readJsonNode(JsonNode jsonNode, String field) {
         return jsonNode.has(field) ? jsonNode.get(field) : MissingNode.getInstance();
+    }
+
+    private List<String> readArray(JsonNode jsonNode, String field) {
+        List<String> s = new ArrayList<>();
+        JsonNode node = jsonNode.has(field) ? jsonNode.get(field) : MissingNode.getInstance();
+        if (node.isArray()) {
+            Iterator<JsonNode> it = node.iterator();
+            while (it.hasNext()) {
+                JsonNode n = it.next();
+                s.add(n.asText());
+            }
+        }
+        return s;
     }
 
 }

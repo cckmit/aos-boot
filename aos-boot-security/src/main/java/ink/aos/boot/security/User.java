@@ -30,6 +30,8 @@ public class User implements UserDetails, CredentialsContainer {
     private String email;
     private String mobile;
 
+    private List<String> uaaTypeCodes;
+
     @Override
     public void eraseCredentials() {
         password = null;

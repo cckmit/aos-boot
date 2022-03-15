@@ -54,9 +54,7 @@ public class UserDeserializer extends JsonDeserializer {
     private Map<String, String> readMap(JsonNode jsonNode, String field) {
         Map<String, String> m = new HashMap<>();
         JsonNode node = jsonNode.has(field) ? jsonNode.get(field) : MissingNode.getInstance();
-        node.fields().forEachRemaining(stringJsonNodeEntry -> {
-            m.put(stringJsonNodeEntry.getKey(), stringJsonNodeEntry.getValue().asText());
-        });
+        node.fields().forEachRemaining(stringJsonNodeEntry -> m.put(stringJsonNodeEntry.getKey(), stringJsonNodeEntry.getValue().asText()));
         return m;
     }
 

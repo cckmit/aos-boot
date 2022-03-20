@@ -3,7 +3,8 @@ package ink.aos.boot.security.filter;
 import ink.aos.boot.security.authentication.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
+import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -26,6 +27,9 @@ public class UserAuthenticationFilter extends AbstractAuthenticationProcessingFi
     @Autowired
     private UserAuthenticationTokenStore tokenStore;
 
+    @Autowired
+    private DefaultAuthenticationEventPublisher eventPublisher;
+
     public UserAuthenticationFilter(AuthenticationManager authenticationManager,
                                     RememberMeServices rememberMeServices) {
         super(DEFAULT_ANT_PATH_REQUEST_MATCHER, authenticationManager);
@@ -39,20 +43,27 @@ public class UserAuthenticationFilter extends AbstractAuthenticationProcessingFi
         String mode = get(request, "mode");
         String bpcToken = get(request, "bpc-token");
 
-        Authentication authentication;
-        switch (mode) {
-            case "password":
-                authentication = new UserPasswordAuthenticationToken(username, password);
-                break;
-            case "bpc":
-                authentication = new UserBpcAuthenticationToken(username, password, bpcToken);
-                break;
-            default:
-                throw new BadCredentialsException("not mode");
+        Authentication authentication = null;
+        try {
+            switch (mode) {
+                case "password":
+                    authentication = new UserPasswordAuthenticationToken(username, password);
+                    break;
+                case "bpc":
+                    authentication = new UserBpcAuthenticationToken(username, password, bpcToken);
+                    break;
+                default:
+                    throw new ProviderNotFoundException("not mode");
+            }
+            authentication = getAuthenticationManager().authenticate(authentication);
+            tokenStore.save((UserAuthenticationToken) authentication);
+            return authentication;
+        } catch (ProviderNotFoundException e) {
+            throw e;
+        } catch (AuthenticationException e) {
+            eventPublisher.publishAuthenticationFailure(e, authentication);
+            throw e;
         }
-        authentication = getAuthenticationManager().authenticate(authentication);
-        tokenStore.save((UserAuthenticationToken) authentication);
-        return authentication;
     }
 
     private String get(HttpServletRequest request, String key) {

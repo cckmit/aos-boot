@@ -34,6 +34,7 @@ public class UserDeserializer extends JsonDeserializer {
         String name = readJsonNode(jsonNode, "name").asText();
         String mobile = readJsonNode(jsonNode, "mobile").asText();
         String email = readJsonNode(jsonNode, "email").asText();
+        String scope = readJsonNode(jsonNode, "scope").asText();
         User result = User.builder()
                 .id(id)
                 .username(username)
@@ -41,6 +42,7 @@ public class UserDeserializer extends JsonDeserializer {
                 .name(name)
                 .mobile(mobile)
                 .email(email)
+                .scope(scope)
                 .authorities(authorities)
                 .uaaTypeCodes(mapper.convertValue(jsonNode.get("uaaTypeCodes"), hashMapTypeReference))
                 .build();

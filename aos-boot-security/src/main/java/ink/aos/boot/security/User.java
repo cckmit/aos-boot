@@ -30,6 +30,7 @@ public class User implements UserDetails, CredentialsContainer {
     private String name;
     private String email;
     private String mobile;
+    private String scope;
 
     private Map<String, String> uaaTypeCodes;
 

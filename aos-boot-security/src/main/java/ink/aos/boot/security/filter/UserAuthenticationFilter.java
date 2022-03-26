@@ -41,7 +41,6 @@ public class UserAuthenticationFilter extends AbstractAuthenticationProcessingFi
         String username = get(request, "username");
         String password = get(request, "password");
         String mode = get(request, "mode");
-        String bpcToken = get(request, "bpc-token");
 
         Authentication authentication = null;
         try {
@@ -50,7 +49,12 @@ public class UserAuthenticationFilter extends AbstractAuthenticationProcessingFi
                     authentication = new UserPasswordAuthenticationToken(username, password);
                     break;
                 case "bpc":
+                    String bpcToken = get(request, "bpc-token");
                     authentication = new UserBpcAuthenticationToken(username, password, bpcToken);
+                    break;
+                case "sms":
+                    String smsCode = get(request, "sms-code");
+                    authentication = new UserSmsAuthenticationToken(username, smsCode);
                     break;
                 default:
                     throw new ProviderNotFoundException("not mode");

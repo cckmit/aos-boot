@@ -6,7 +6,7 @@ import ink.aos.boot.ap.api.IEnumDef;
 public class EnumDefUtil {
 
     public static EnumDef toObject(IEnumDef iEnumDef) {
-        return new EnumDef(iEnumDef.getCode(), iEnumDef.getLabel());
+        return new EnumDef(iEnumDef.getName(), iEnumDef.getLabel());
     }
 
     public static EnumDef[] toObject(IEnumDef[] iEnumDefs) {

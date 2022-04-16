@@ -11,4 +11,7 @@ package ink.aos.boot.db.config;
 public class ApDBConstants {
 
     public static final String TENANT_FILTER = "tenantFilter";
+
+    public static final String TOMBSTONE_FILTER = "tombstoneFilter";
+
 }

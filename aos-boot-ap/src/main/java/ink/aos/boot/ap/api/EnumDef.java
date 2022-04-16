@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class EnumDef implements IEnumDef {
 
-    private String code;
+    private String name;
     private String label;
 
 }

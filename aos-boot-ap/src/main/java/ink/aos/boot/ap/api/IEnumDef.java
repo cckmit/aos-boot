@@ -4,7 +4,13 @@ public interface IEnumDef {
 
     String URL_PRE = "/enumdef/";
 
-    String getCode();
+    default String getName() {
+        return name();
+    }
+
+    default String name() {
+        return null;
+    }
 
     String getLabel();
 

@@ -21,14 +21,19 @@ public class UserSmsAuthService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    public String create(User user, String length) {
+    public String create(User user) {
+        return create(user, null);
+    }
+
+    public String create(User user, String code) {
+
+        if (StringUtils.isBlank(code)) {
+            code = RandomStringUtils.randomNumeric(properties.getLoginSms().getLength());
+        }
 
         if (StringUtils.isBlank(user.getMobile())) {
             throw new AosException("该用户未绑定手机号");
         }
-
-        // 生成验证码
-        String code = RandomStringUtils.randomNumeric(properties.getLoginSms().getLength());
 
         //校验手机号是否存在
         if (StringUtils.isBlank(redisTemplate.opsForValue().get(REDIS_UAA_CAPTCHA_MOBILE + user.getMobile()))) {

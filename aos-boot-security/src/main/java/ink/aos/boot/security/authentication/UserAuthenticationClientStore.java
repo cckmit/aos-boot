@@ -15,6 +15,8 @@ public class UserAuthenticationClientStore {
         cookie.setSecure(request.isSecure());
         cookie.setHttpOnly(true);
         response.addCookie(cookie);
+
+        response.addHeader(ACCESS_TOKEN_COOKIE_KEY, token);
     }
 
     public static String extractRememberMeCookie(HttpServletRequest request) {
@@ -40,6 +42,8 @@ public class UserAuthenticationClientStore {
         cookie.setSecure(request.isSecure());
         cookie.setHttpOnly(true);
         response.addCookie(cookie);
+
+        response.addHeader(SPRING_SECURITY_REMEMBER_ME_COOKIE_KEY, token);
     }
 
     private static String getCookiePath(HttpServletRequest request) {

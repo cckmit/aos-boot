@@ -82,11 +82,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private void authorizedUrl(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry) {
         if (securityAuthorizedUrlProperties.getPermitAlls() != null) {
-            log.debug("security PermitAlls : {}", securityAuthorizedUrlProperties.getPermitAlls());
+            log.debug("security PermitAlls : {}", (Object) securityAuthorizedUrlProperties.getPermitAlls());
             registry.antMatchers(securityAuthorizedUrlProperties.getPermitAlls()).permitAll();
         }
         if (securityAuthorizedUrlProperties.getAuthenticateds() != null) {
-            log.debug("security Authenticateds : {}", securityAuthorizedUrlProperties.getAuthenticateds());
+            log.debug("security Authenticateds : {}", (Object) securityAuthorizedUrlProperties.getAuthenticateds());
             registry.antMatchers(securityAuthorizedUrlProperties.getAuthenticateds()).authenticated();
         }
         registry.antMatchers("/ap/**").authenticated()

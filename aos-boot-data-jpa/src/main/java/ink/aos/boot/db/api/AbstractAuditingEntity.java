@@ -1,11 +1,7 @@
 package ink.aos.boot.db.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import ink.aos.boot.db.config.ApDBConstants;
 import lombok.Data;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
 import org.hibernate.envers.Audited;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -23,8 +19,8 @@ import java.time.Instant;
 @Audited
 @MappedSuperclass
 @EntityListeners({AuditingEntityListener.class})
-@FilterDef(name = ApDBConstants.TOMBSTONE_FILTER, parameters = {@ParamDef(name = "deleted", type = "boolean")})
-@Filter(name = ApDBConstants.TOMBSTONE_FILTER, condition = "deleted = :deleted")
+//@FilterDef(name = ApDBConstants.TOMBSTONE_FILTER, parameters = {@ParamDef(name = "deleted", type = "boolean")})
+//@Filter(name = ApDBConstants.TOMBSTONE_FILTER, condition = "deleted = :deleted")
 public abstract class AbstractAuditingEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -49,7 +45,7 @@ public abstract class AbstractAuditingEntity implements Serializable {
     @JsonIgnore
     private Instant lastModifiedDate = Instant.now();
 
-    @JsonIgnore
-    private Boolean deleted = false;
+//    @JsonIgnore
+//    private Boolean deleted = false;
 
 }

@@ -1,7 +1,6 @@
 package ink.aos.boot.db.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
@@ -21,8 +20,8 @@ public class DatabaseConfiguration {
         log.debug("boot db config success");
     }
 
-    @Bean
-    public TombstoneJpaAspect tombstoneJpaAspect() {
-        return new TombstoneJpaAspect();
-    }
+//    @Bean
+//    public TombstoneJpaAspect tombstoneJpaAspect() {
+//        return new TombstoneJpaAspect();
+//    }
 }
